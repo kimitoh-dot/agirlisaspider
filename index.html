@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>This Page Does Not Exist</title>
+  <style>
+    /* ── RESET & BASE ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:       #7aaec8;
+      --blue-light: #b8d8ea;
+      --blue-pale:  #dceef7;
+      --blue-dark:  #2a5a7a;
+      --blue-deep:  #1a3a52;
+      --white:      #ffffff;
+      --text:       #1a3a52;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: #c8dfee;
+      font-family: 'Comic Sans MS', 'Comic Sans', cursive;
+      cursor: none;
+    }
+
+    /* ── CUSTOM CURSOR ── */
+    #cursor-dot {
+      position: fixed;
+      width: 32px; height: 32px;
+      background: url('spider-cursor.png') center/contain no-repeat;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+    }
+
+    /* ── SPARKLE TRAIL ── */
+    .sparkle {
+      position: fixed;
+      pointer-events: none;
+      z-index: 9998;
+      font-size: 12px;
+      animation: sparkle-fade 0.8s ease-out forwards;
+      transform: translate(-50%, -50%);
+      color: white;
+      text-shadow: 0 0 4px #b8d8ea, 0 0 8px #7aaec8;
+      will-change: transform, opacity;
+    }
+    @keyframes sparkle-fade {
+      0%   { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(0.3); }
+    }
+
+    /* ── SPIDERWEB STAGE ── */
+    #stage {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      overflow: hidden;
+      transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    #spiderweb-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%; height: 100%;
+      background-image: url('spiderweb-bg.png');
+      background-size: cover;
+      background-position: center;
+    }
+
+    /* ── SITE TITLE ── */
+    #site-title {
+      position: absolute;
+      top: 12px; left: 16px;
+      z-index: 30;
+      width: 280px;
+      pointer-events: none;
+      filter: drop-shadow(0 0 6px rgba(255,255,255,0.7));
+    }
+
+    /* ── FLOATING GIFS ── */
+    .float-gif {
+      position: absolute;
+      pointer-events: none;
+      z-index: 10;
+      animation: float 4s ease-in-out infinite;
+    }
+    #sugarbunny {
+      bottom: 30px; right: 60px;
+      animation-delay: 0s;
+    }
+    #pudding {
+      bottom: 30px; right: 140px;
+      animation-delay: 1.2s;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50%       { transform: translateY(-8px); }
+    }
+
+
+
+    /* ── FEED BUTTON ── */
+    #feed-btn {
+      position: fixed;
+      bottom: 32px; left: 20px;
+      z-index: 300;
+      background: var(--blue-dark);
+      color: white;
+      border: none;
+      font-family: 'Comic Sans MS', cursive;
+      font-size: 11px;
+      padding: 6px 10px;
+      cursor: pointer;
+      border-radius: 3px;
+      box-shadow: 2px 2px 0 var(--blue-deep);
+      transition: all 0.2s;
+    }
+    #feed-btn:hover { background: var(--blue); transform: translate(-1px,-1px); box-shadow: 3px 3px 0 var(--blue-deep), 0 0 10px white; }
+    #feed-btn.active { background: var(--blue-deep); }
+
+    #close-all-btn {
+      position: fixed;
+      bottom: 32px; left: 155px;
+      z-index: 300;
+      background: var(--blue-deep);
+      color: white;
+      border: none;
+      font-family: 'Comic Sans MS', cursive;
+      font-size: 11px;
+      padding: 6px 10px;
+      cursor: pointer;
+      border-radius: 3px;
+      box-shadow: 2px 2px 0 #0a1a2a;
+      transition: all 0.2s;
+      display: none;
+    }
+    #close-all-btn:hover { background: var(--blue-dark); transform: translate(-1px,-1px); box-shadow: 3px 3px 0 #0a1a2a, 0 0 10px white; }
+
+    /* ── WEB NODES ── */
+    .web-node {
+      position: absolute;
+      z-index: 20;
+      cursor: pointer;
+      transform: translate(-50%, -50%);
+      transition: transform 0.2s, filter 0.2s;
+    }
+    .web-node:hover { transform: translate(-50%, -50%) scale(1.08); filter: brightness(1.1) drop-shadow(0 0 6px white) drop-shadow(0 0 12px #b8d8ea); }
+
+    .node-img {
+      display: block;
+      max-width: 110px;
+      height: auto;
+      image-rendering: pixelated;
+    }
+
+    /* glitter overlay on nodes */
+    .node-img::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, transparent 50%, rgba(122,174,200,0.2) 100%);
+      pointer-events: none;
+    }
+
+    .node-label {
+      display: block;
+      text-align: center;
+      font-size: 9px;
+      color: var(--blue-deep);
+      margin-top: 3px;
+      text-shadow: 0 0 4px white, 0 0 8px rgba(255,255,255,0.8);
+      font-family: 'Comic Sans MS', cursive;
+      max-width: 90px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ── FEED MODE ── */
+    body.feed-mode #stage {
+      background-image: url('feed-bg.png');
+      background-size: cover;
+      background-position: center;
+    }
+    body.feed-mode .web-node,
+    body.feed-mode #spiderweb-bg,
+    body.feed-mode .float-gif,
+    body.feed-mode #site-title {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s;
+    }
+
+    #feed-band {
+      position: absolute;
+      top: 0; bottom: 0;
+      left: 50%; transform: translateX(-50%);
+      width: 320px;
+      overflow-y: scroll;
+      overflow-x: hidden;
+      z-index: 50;
+      display: none;
+      scrollbar-width: none;
+    }
+    #feed-band::-webkit-scrollbar { display: none; }
+
+    body.feed-mode #feed-band { display: block; }
+
+    .feed-item {
+      padding: 16px 14px;
+      border-bottom: 1px solid var(--blue-light);
+      background: white;
+      font-size: 12px;
+      color: var(--blue-deep);
+      line-height: 1.6;
+    }
+    .feed-item:nth-child(even) { background: var(--blue-pale); }
+    .feed-item-label {
+      font-size: 9px;
+      color: var(--blue-dark);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+    .feed-open-btn {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 10px;
+      color: var(--blue-dark);
+      cursor: pointer;
+      text-decoration: underline;
+      font-family: 'Comic Sans MS', cursive;
+      border: none; background: none; padding: 0;
+    }
+
+    /* ── POPUP WINDOWS ── */
+    .popup {
+      position: fixed;
+      z-index: 500;
+      display: none;
+      flex-direction: column;
+      border: 2px solid var(--blue-dark);
+      box-shadow: 4px 4px 0 var(--blue-deep), 0 0 30px rgba(42,90,122,0.2);
+      min-width: 320px;
+      max-width: 90vw;
+      max-height: 80vh;
+      overflow: hidden;
+      border-radius: 2px;
+      font-family: 'Comic Sans MS', cursive;
+    }
+    .popup.open { display: flex; }
+
+    /* draggable titlebar */
+    .popup-titlebar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 5px 8px;
+      cursor: grab;
+      user-select: none;
+      font-size: 11px;
+      font-weight: bold;
+    }
+    .popup-titlebar:active { cursor: grabbing; }
+    .popup-close {
+      background: var(--blue);
+      border: 1px solid var(--blue-dark);
+      color: white;
+      font-size: 10px;
+      width: 18px; height: 18px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+    .popup-close:hover { background: var(--blue-dark); box-shadow: 0 0 8px white; }
+
+    .popup-body {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    /* ────────────────────────────────
+       POPUP THEMES
+    ──────────────────────────────── */
+
+    /* 1. TUMBLR */
+    #popup-tumblr {
+      width: 500px;
+      background: #35465c;
+    }
+    #popup-tumblr .popup-titlebar { background: #001935; color: #ffffff; }
+    #popup-tumblr .popup-body { background: #35465c; }
+    #popup-tumblr iframe { width: 100%; height: 420px; border: none; display: block; }
+
+    /* 2. CLUB PENGUIN */
+    #popup-clubpenguin {
+      width: 480px;
+      background: #e8f4ff;
+    }
+    #popup-clubpenguin .popup-titlebar { background: #0066cc; color: white; }
+    .cp-tabs { display: flex; border-bottom: 2px solid #0066cc; }
+    .cp-tab {
+      padding: 6px 14px;
+      font-size: 11px;
+      cursor: pointer;
+      background: #b3d9ff;
+      border-right: 1px solid #0066cc;
+      color: #003366;
+    }
+    .cp-tab.active { background: #e8f4ff; font-weight: bold; }
+    .cp-panel { display: none; padding: 14px; font-size: 12px; color: #003366; line-height: 1.7; }
+    .cp-panel.active { display: block; }
+    .cp-headline { font-size: 15px; font-weight: bold; color: #0066cc; border-bottom: 1px solid #0066cc; padding-bottom: 4px; margin-bottom: 10px; }
+    .cp-byline { font-size: 10px; color: #666; margin-bottom: 10px; }
+    blockquote.cp-quote { border-left: 3px solid #0066cc; padding-left: 10px; margin: 8px 0; font-style: italic; font-size: 11px; color: #336; }
+
+    /* 3. CHAIN MAIL */
+    #popup-chainmail {
+      width: 460px;
+      background: #f0f0f0;
+    }
+    #popup-chainmail .popup-titlebar { background: #000080; color: white; font-family: 'Courier New', monospace; }
+    .mail-header { background: #e0e0e0; padding: 10px 14px; font-size: 11px; border-bottom: 1px solid #ccc; font-family: 'Courier New', monospace; color: #333; }
+    .mail-field { margin-bottom: 4px; }
+    .mail-field span { color: #000080; font-weight: bold; }
+    .mail-body { padding: 14px; font-family: 'Courier New', monospace; font-size: 11px; color: #222; line-height: 1.8; }
+    .mail-warning { color: red; font-weight: bold; }
+    .mail-tier { margin: 8px 0; padding: 6px; background: #fff8dc; border: 1px solid #ccc; }
+
+    /* 4. FACEBOOK TAG */
+    #popup-facebook {
+      width: 440px;
+      background: #f0f2f5;
+    }
+    #popup-facebook .popup-titlebar { background: #1877f2; color: white; }
+    .fb-post { background: white; border-radius: 4px; margin: 12px; padding: 12px; border: 1px solid #ddd; font-size: 12px; color: #1c1e21; }
+    .fb-avatar { display: inline-block; width: 30px; height: 30px; background: #ff69b4; border-radius: 50%; vertical-align: middle; margin-right: 8px; }
+    .fb-username { font-weight: bold; font-size: 12px; color: #050505; }
+    .fb-timestamp { font-size: 10px; color: #65676b; }
+    .fb-img-wrap { margin: 10px 0; background: #e4e6ea; padding: 6px; border-radius: 4px; text-align: center; }
+    .fb-img-wrap img { max-width: 100%; border-radius: 2px; }
+    .fb-caption { font-size: 11px; color: #65676b; margin-top: 6px; }
+
+    /* 5. WEBCAM */
+    #popup-webcam {
+      width: 380px;
+      background: #111;
+    }
+    #popup-webcam .popup-titlebar { background: #222; color: #ff69b4; font-family: 'Courier New', monospace; }
+    .webcam-wrap { position: relative; background: #000; min-height: 250px; display: flex; align-items: center; justify-content: center; }
+    #webcam-video { width: 100%; display: block; transform: scaleX(-1); }
+    #webcam-fallback { color: #ff69b4; font-size: 12px; text-align: center; padding: 20px; font-family: 'Courier New', monospace; display: none; }
+    .webcam-caption { color: #ff69b4; font-size: 11px; text-align: center; padding: 10px; font-family: 'Courier New', monospace; background: #111; }
+
+    /* 6. TAMATOWN */
+    #popup-tamatown {
+      width: 380px;
+      background: #f9e4ff;
+    }
+    #popup-tamatown .popup-titlebar { background: #9933cc; color: white; }
+    .tama-screen {
+      background: #000;
+      color: #00ff44;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      padding: 16px;
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .tama-loading { margin-top: 12px; }
+    .tama-bar { height: 8px; background: #003300; margin: 6px 0; border-radius: 2px; overflow: hidden; }
+    .tama-fill { height: 100%; background: #00ff44; animation: tama-load 3s ease-in-out infinite; width: 0%; }
+    @keyframes tama-load { 0% { width: 0%; } 60% { width: 87%; } 80% { width: 87%; } 100% { width: 0%; } }
+    .tama-map { padding: 14px; font-size: 11px; color: #6600aa; }
+    .tama-town { border: 2px solid #9933cc; border-radius: 4px; padding: 10px; background: #fff0ff; margin-top: 10px; position: relative; }
+    .tama-street { display: flex; gap: 8px; margin: 6px 0; }
+    .tama-building { background: #d9a3ff; border: 1px solid #9933cc; border-radius: 3px; padding: 6px 10px; font-size: 10px; color: #4a0080; text-align: center; opacity: 0.5; cursor: not-allowed; }
+    .tama-overlay { position: absolute; inset: 0; background: rgba(249,228,255,0.7); display: flex; align-items: center; justify-content: center; font-size: 11px; color: #6600aa; text-align: center; padding: 20px; border-radius: 4px; }
+
+    /* 7. WEHEARTIT */
+    #popup-weheartit {
+      width: 460px;
+      background: #fff;
+    }
+    #popup-weheartit .popup-titlebar { background: #e33a5f; color: white; }
+    .whi-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 10px;
+      background: #fff;
+      justify-content: center;
+    }
+    .whi-item {
+      flex: 0 0 auto;
+      width: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .whi-item:hover { opacity: 0.85; }
+    .whi-item img {
+      width: 120px;
+      height: auto;
+      display: block;
+    }
+
+    /* 8. PET SOCIETY */
+    #popup-petsociety {
+      width: 500px;
+      background: #e8f5e9;
+    }
+    #popup-petsociety .popup-titlebar { background: #4caf50; color: white; }
+    .ps-room {
+      position: relative;
+      background: #f0fff0;
+      min-height: 280px;
+      padding: 14px;
+      font-size: 11px;
+      color: #2e7d32;
+    }
+    .ps-room-bg {
+      position: absolute; inset: 0;
+      background: repeating-linear-gradient(90deg, #e8f5e9 0px, #e8f5e9 39px, #c8e6c9 40px),
+                  repeating-linear-gradient(0deg, #e8f5e9 0px, #e8f5e9 39px, #c8e6c9 40px);
+      opacity: 0.5;
+    }
+    .ps-object {
+      position: relative;
+      z-index: 2;
+      margin: 10px 0;
+      background: white;
+      border: 1px solid #81c784;
+      border-radius: 4px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .ps-icon { font-size: 22px; flex-shrink: 0; }
+    .ps-text strong { color: #1b5e20; font-size: 11px; display: block; margin-bottom: 3px; }
+    .ps-text span { color: #388e3c; font-size: 10px; line-height: 1.5; }
+
+    /* 9. GIRLSGOGAMES */
+    #popup-girlsgogames {
+      width: 440px;
+      background: #fff0f8;
+    }
+    #popup-girlsgogames .popup-titlebar { background: #e91e8c; color: white; }
+    .ggg-scene { padding: 16px; }
+    .ggg-title { font-size: 14px; font-weight: bold; color: #c2006e; text-align: center; margin-bottom: 12px; }
+    .ggg-text { font-size: 12px; color: #5a1a3a; margin-bottom: 14px; text-align: center; line-height: 1.6; }
+    .ggg-choices { display: flex; flex-direction: column; gap: 8px; }
+    .ggg-choice {
+      background: white;
+      border: 2px solid #ff69b4;
+      border-radius: 20px;
+      padding: 8px 16px;
+      font-size: 11px;
+      color: #c2006e;
+      cursor: pointer;
+      text-align: left;
+      font-family: 'Comic Sans MS', cursive;
+      transition: all 0.15s;
+    }
+    .ggg-choice:hover { background: #ff69b4; color: white; }
+    .ggg-conclusion { display: none; padding: 14px; background: #ffe0f4; border-radius: 8px; font-size: 12px; color: #5a1a3a; line-height: 1.7; text-align: center; margin-top: 10px; }
+
+    /* 10. WINDOWS MEDIA PLAYER */
+    #popup-wmp {
+      width: 420px;
+      background: #1a1a2e;
+      font-family: 'Tahoma', 'Arial', sans-serif;
+    }
+    #popup-wmp .popup-titlebar {
+      background: linear-gradient(90deg, #1a3a6e, #0d0d1a);
+      color: #a8c8ff;
+      font-family: Tahoma, sans-serif;
+      font-size: 11px;
+      border-bottom: 1px solid #2a4a8e;
+    }
+    .wmp-body {
+      background: #0d0d1a;
+      padding: 0;
+    }
+    /* visualiser canvas */
+    #wmp-visualiser {
+      display: block;
+      width: 100%;
+      height: 120px;
+      background: #000;
+    }
+    .wmp-track-info {
+      background: #000;
+      padding: 8px 12px 6px;
+      border-top: 1px solid #1a2a4e;
+      border-bottom: 1px solid #1a2a4e;
+    }
+    .wmp-track-title {
+      color: #ff69b4;
+      font-size: 12px;
+      font-weight: bold;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .wmp-track-sub {
+      color: #6699cc;
+      font-size: 10px;
+      margin-top: 2px;
+    }
+    /* progress bar */
+    .wmp-progress-wrap {
+      background: #111;
+      padding: 8px 12px 4px;
+    }
+    .wmp-progress-bg {
+      height: 4px;
+      background: #1a2a4e;
+      border-radius: 2px;
+      position: relative;
+      cursor: pointer;
+    }
+    .wmp-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #4488ff, #ff69b4);
+      border-radius: 2px;
+      width: 0%;
+      transition: width 1s linear;
+    }
+    .wmp-time-row {
+      display: flex;
+      justify-content: space-between;
+      color: #4466aa;
+      font-size: 9px;
+      margin-top: 3px;
+      font-family: 'Courier New', monospace;
+    }
+    /* controls */
+    .wmp-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 12px 10px;
+      background: #0d0d1a;
+    }
+    .wmp-btn {
+      background: linear-gradient(180deg, #2a3a6e, #1a2a5e);
+      border: 1px solid #3a5a9e;
+      color: #a8c8ff;
+      font-size: 11px;
+      width: 28px; height: 22px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: all 0.1s;
+      flex-shrink: 0;
+    }
+    .wmp-btn:hover { background: linear-gradient(180deg, #3a5aae, #2a3a8e); color: #fff; }
+    .wmp-btn.playing { color: #ff69b4; border-color: #ff69b4; }
+    .wmp-volume-wrap { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+    .wmp-vol-label { color: #4466aa; font-size: 9px; }
+    .wmp-vol-slider {
+      -webkit-appearance: none;
+      width: 60px; height: 3px;
+      background: #1a2a4e;
+      border-radius: 2px;
+      outline: none;
+    }
+    .wmp-vol-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 10px; height: 10px;
+      background: #4488ff;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    /* hidden youtube embed */
+    #wmp-yt { display: none; }
+
+    /* ── TAG DRAWER ── */
+    .tag-drawer {
+      border-top: 1px solid rgba(0,0,0,0.1);
+      background: rgba(0,0,0,0.03);
+    }
+    .tag-drawer-toggle {
+      display: block;
+      width: 100%;
+      padding: 6px 12px;
+      font-family: 'Courier New', monospace;
+      font-size: 10px;
+      color: #666;
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+      letter-spacing: 0.5px;
+    }
+    .tag-drawer-toggle:hover { color: #333; }
+    .tag-drawer-content {
+      display: none;
+      padding: 8px 14px 12px;
+      font-family: 'Courier New', monospace;
+      font-size: 10.5px;
+      line-height: 1.9;
+      color: #444;
+      max-height: 160px;
+      overflow-y: auto;
+    }
+    .tag-drawer-content.open { display: block; }
+
+    /* 11. WAYBACK MACHINE ABOUT */
+    #popup-about {
+      width: 520px;
+      background: #fdfaf3;
+      font-family: Arial, sans-serif;
+    }
+    #popup-about .popup-titlebar {
+      background: linear-gradient(180deg, #4a4a4a, #2a2a2a);
+      color: #ccc;
+      font-family: Arial, sans-serif;
+      font-size: 11px;
+    }
+    .wb-toolbar {
+      background: #e8e0cc;
+      border-bottom: 2px solid #b8a87a;
+      padding: 5px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .wb-nav { display: flex; gap: 4px; align-items: center; }
+    .wb-nav-btn {
+      background: linear-gradient(180deg, #fff, #ddd);
+      border: 1px solid #aaa;
+      border-radius: 2px;
+      padding: 1px 7px;
+      font-size: 10px;
+      color: #333;
+      cursor: default;
+      font-family: Arial, sans-serif;
+    }
+    .wb-url-bar {
+      display: flex;
+      align-items: center;
+      background: white;
+      border: 1px solid #999;
+      border-radius: 2px;
+      padding: 3px 8px;
+      font-size: 11px;
+      font-family: 'Courier New', monospace;
+      color: #333;
+    }
+    .wb-banner {
+      background: #1a1a1a;
+      color: #aaa;
+      font-family: Arial, sans-serif;
+      font-size: 10px;
+      padding: 5px 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid #333;
+    }
+    .wb-banner-logo {
+      font-size: 12px;
+      font-weight: bold;
+      color: #6699cc;
+      white-space: nowrap;
+      letter-spacing: -0.3px;
+    }
+    .wb-banner-tag { font-size: 9px; color: #666; }
+    .wb-content {
+      padding: 20px 24px 24px;
+      font-family: Georgia, serif;
+      font-size: 12.5px;
+      color: #1a1a1a;
+      line-height: 2;
+      background: #fdfaf3;
+      max-height: 340px;
+      overflow-y: auto;
+    }
+    .wb-content p { margin-bottom: 14px; }
+    .wb-content em { font-style: italic; color: #2a4a6a; }
+    .wb-closing {
+      margin-top: 16px;
+      font-style: italic;
+      color: #666;
+      font-size: 11px;
+      border-top: 1px solid #e0d8c0;
+      padding-top: 14px;
+    }
+
+  </style>
+</head>
+<body>
+
+<!-- CURSOR DOT -->
+<div id="cursor-dot"></div>
+
+
+<!-- MAIN STAGE -->
+<div id="stage">
+  <div id="spiderweb-bg"></div>
+
+  <!-- TITLE -->
+  <img src="glitter-text.gif" alt="A Girl is A Spider" id="site-title">
+
+  <!-- FLOATING GIFS -->
+  <img src="sugarbunny.gif" alt="" class="float-gif" id="sugarbunny" style="width:60px;">
+  <img src="littletwinstars.gif" alt="" class="float-gif" id="pudding" style="width:50px;">
+
+  <!-- WEB NODES -->
+  <!-- Positions are set as % of stage dimensions, placed at "web intersection" points -->
+  <div class="web-node" style="left:26%;top:30%;" onclick="openPopup('popup-tumblr')" title="#justgirlythings">
+    <img class="node-img" src="girly-1.gif" alt="#justgirlythings">
+    <span class="node-label">#justgirlythings</span>
+  </div>
+
+  <div class="web-node" style="left:50%;top:15%;" onclick="openPopup('popup-clubpenguin')" title="Club Penguin Times">
+    <img class="node-img" src="penguin-2.gif" alt="Club Penguin">
+    <span class="node-label">Club Penguin Times</span>
+  </div>
+
+  <div class="web-node" style="left:80%;top:22%;" onclick="openPopup('popup-chainmail')" title="Chain Mail">
+    <img class="node-img" src="email-1.gif" alt="chain mail">
+    <span class="node-label">chain mail</span>
+  </div>
+
+  <div class="web-node" style="left:12%;top:50%;" onclick="openPopup('popup-facebook')" title="Facebook Tag">
+    <img class="node-img" src="friends-4.gif" alt="tag ur friends">
+    <span class="node-label">tag ur friends</span>
+  </div>
+
+  <div class="web-node" style="left:35%;top:42%;" onclick="openPopup('popup-webcam')" title="Webcam Mirror">
+    <img class="node-img" src="webcam-2.gif" alt="webcam mirror">
+    <span class="node-label">webcam mirror</span>
+  </div>
+
+  <div class="web-node" style="left:65%;top:42%;" onclick="openPopup('popup-tamatown')" title="Tamatown">
+    <img class="node-img" src="tamatown-1.gif" alt="Tamatown">
+    <span class="node-label">Tamatown</span>
+  </div>
+
+  <div class="web-node" style="left:88%;top:50%;" onclick="openPopup('popup-weheartit')" title="WeHeartIt">
+    <img class="node-img" src="weheartit-4.gif" alt="WeHeartIt">
+    <span class="node-label">WeHeartIt</span>
+  </div>
+
+  <div class="web-node" style="left:62%;top:70%;" onclick="openPopup('popup-girlsgogames')" title="GirlsGoGames">
+    <img class="node-img" src="girlsgogames-1.gif" alt="GirlsGoGames">
+    <span class="node-label">GirlsGoGames</span>
+  </div>
+
+  <div class="web-node" style="left:32%;top:78%;" onclick="openPopup('popup-wmp')" title="Windows Media Player">
+    <img class="node-img" src="music-3.gif" alt="music player">
+    <span class="node-label">music player</span>
+  </div>
+
+  <div class="web-node" style="left:82%;top:72%;" onclick="openPopup('popup-about')" title="about">
+    <img class="node-img" src="aboutme-2.gif" alt="about">
+    <span class="node-label">about</span>
+  </div>
+
+  <!-- FEED BAND (hidden until activated) -->
+  <div id="feed-band">
+    <div class="feed-item">
+      <div class="feed-item-label">web.archive.org/agirlisaspider</div>
+      the internet does not exist. i was there anyway.
+      <br><button class="feed-open-btn" onclick="openPopup('popup-about')">[open]</button>
+    </div>
+    <div class="feed-item">
+      <div class="feed-item-label">windows media player</div>
+      background music. it was always playing somewhere.
+      <br><button class="feed-open-btn" onclick="openPopup('popup-wmp')">[open]</button>
+    </div>
+    <div class="feed-item">
+      <div class="feed-item-label">tumblr · #justgirlythings</div>
+      trying to be findable. the early internet was a place you could be in without being categorised.
+      <br><button class="feed-open-btn" onclick="openPopup('popup-tumblr')">[open]</button>
+    </div>
+    <div class="feed-item">
+      <div class="feed-item-label">club penguin times</div>
+      BREAKING: a place that existed has gone missing. witnesses report they were there. no evidence remains.
+      <br><button class="feed-open-btn" onclick="openPopup('popup-clubpenguin')">[open]</button>
+    </div>
+    <div class="feed-item">
+      <div class="feed-item-label">chain mail</div>
+      Fwd: Fwd: READ THIS OR ELSE — the internet had a landlord and we didn't know.
+      <br><button class="feed-open-btn" onclick="openPopup('popup-chainmail')">[open]</button>
+    </div>
+    <div class="feed-item">
+      <div class="feed-item-label">facebook · tag ur friends</div>
+      which one are you: the drifter / the 404 one / the mirror one / the noise defender
+      <br><button class="feed-open-btn" onclick="openPopup('popup-facebook')">[open]</button>
+    </div>
+    <div class="feed-item">
+      <div class="feed-item-label">webcam mirror</div>
+      we thought there were windows. it was made of mirrors.
+      <br><button class="feed-open-btn" onclick="openPopup('popup-webcam')">[open]</button>
+    </div>
+    <div class="feed-item">
+      <div class="feed-item-label">tamatown</div>
+      the object still exists. the town no longer loads.
+      <br><button class="feed-open-btn" onclick="openPopup('popup-tamatown')">[open]</button>
+    </div>
+    <div class="feed-item">
+      <div class="feed-item-label">weheartit</div>
+      self-curated identity made of theoretical material.
+      <br><button class="feed-open-btn" onclick="openPopup('popup-weheartit')">[open]</button>
+    </div>
+
+    <div class="feed-item">
+      <div class="feed-item-label">girlsgogames</div>
+      every path leads to the same theoretical argument.
+      <br><button class="feed-open-btn" onclick="openPopup('popup-girlsgogames')">[open]</button>
+    </div>
+    <!-- auto-scroll loop: items repeat below -->
+  </div>
+</div><!-- /stage -->
+
+<!-- FEED TOGGLE BUTTON -->
+<button id="feed-btn" onclick="toggleFeed()">✂ cut the web</button>
+<button id="close-all-btn" onclick="closeAllPopups()">✕ close all</button>
+
+
+
+
+
+<!-- ═══════════════════════════════════════
+     POPUP WINDOWS
+═══════════════════════════════════════ -->
+
+<!-- 1. TUMBLR -->
+<div class="popup" id="popup-tumblr" style="top:60px;left:60px;width:500px;">
+  <div class="popup-titlebar" onmousedown="startDrag(event,'popup-tumblr')">
+    <span>🌀 #justgirlythings — theinternetdoesnot-exist.tumblr.com</span>
+    <div class="popup-close" onclick="closePopup('popup-tumblr')">✕</div>
+  </div>
+  <div class="popup-body" style="height:420px;">
+    <iframe src="https://theinternetdoesnot-exist.tumblr.com" loading="lazy" title="justgirlythings tumblr"></iframe>
+  </div>
+  <div class="tag-drawer" style="border-top:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);">
+    <button class="tag-drawer-toggle" style="color:rgba(255,255,255,0.6);" onclick="toggleTagDrawer('tags-tumblr')">&#35; view tags ▾</button>
+    <div class="tag-drawer-content" id="tags-tumblr" style="color:rgba(255,255,255,0.75);">#i started using tumblr because i thought the memes were funny #i ran a meme blog when i was 12 that somehow had 50k+ followers... #now that i try to describe what kind of memes i was posting i cannot recall any of them but what i do remember is the justgirlythings page because i've always found them so funny in an ironic way. #justgirlythings #peak tumblr #this was where i learnt html #queueing posts #joining a meme tumblr network of other people who ran meme blogs on tumblr...</div>
+  </div>
+</div>
+
+<!-- 2. CLUB PENGUIN TIMES -->
+<div class="popup" id="popup-clubpenguin" style="top:80px;left:120px;width:480px;">
+  <div class="popup-titlebar" onmousedown="startDrag(event,'popup-clubpenguin')">
+    <span>🐧 The Club Penguin Times</span>
+    <div class="popup-close" onclick="closePopup('popup-clubpenguin')">✕</div>
+  </div>
+  <div class="popup-body">
+    <div class="cp-tabs">
+      <div class="cp-tab active" onclick="cpTab(event,'cp-front')">Front Page</div>
+      <div class="cp-tab" onclick="cpTab(event,'cp-community')">Community</div>
+      <div class="cp-tab" onclick="cpTab(event,'cp-arctic')">Ask Aunt Arctic</div>
+    </div>
+    <div class="cp-panel active" id="cp-front">
+      <div class="cp-headline">BREAKING: BELOVED PLACE REPORTED MISSING</div>
+      <div class="cp-byline">By Staff Reporter · Issue #404 · Last Updated: Unknown</div>
+      <p>A place that many penguins described as "real" and "where I actually was" has gone missing, sources confirmed this week. The place, which had no official name but which residents knew intuitively as somewhere, is no longer accessible by any known route.</p>
+      <p style="margin-top:10px;">"I was there," said one penguin, who declined to be named. "I had a blue puffle and I remember the colour of the walls."</p>
+      <p style="margin-top:10px;">Authorities have stated there is no record of the place ever existing. Witnesses disagree.</p>
+      <blockquote class="cp-quote">"The map said it was here. I walked to it. I was in it. And then one day the map was just a map."</blockquote>
+      <p style="margin-top:10px;">Investigations are ongoing. The Times will continue to report from the coordinates where the place used to be.</p>
+    </div>
+    <div class="cp-panel" id="cp-community">
+      <div class="cp-headline">WE ASKED PENGUINS: WHERE DID IT GO?</div>
+      <p style="margin-bottom:10px;">This week we asked residents of the island to reflect on the disappearance of a place they loved. Here is what they said.</p>
+      <blockquote class="cp-quote">"I don't know how to explain it to someone who wasn't there. It was a place. We were in it. That should be enough."</blockquote>
+      <blockquote class="cp-quote">"The thing about the early internet is that it didn't know what it was yet, so neither did we, so we could be anything."</blockquote>
+      <blockquote class="cp-quote">"My mum thought I was doing homework. I was learning that I existed."</blockquote>
+      <blockquote class="cp-quote">"It felt like a town but it was a server. But it felt like a town."</blockquote>
+      <blockquote class="cp-quote">"I miss the loading screen. I miss knowing I was going somewhere."</blockquote>
+    </div>
+    <div class="cp-panel" id="cp-arctic">
+      <div class="cp-headline">ASK AUNT ARCTIC</div>
+      <p style="margin-bottom:10px;font-size:11px;color:#336;"><em>Aunt Arctic answers your most pressing questions about life, loss, and the topology of disappeared places.</em></p>
+      <p><strong>Dear Aunt Arctic,</strong></p>
+      <p style="margin:8px 0;">I keep trying to go back to a place that doesn't exist anymore. I know it doesn't exist. But I remember being there so clearly that it feels like a mistake. Like the internet made an error by removing it and not me.</p>
+      <p style="margin-bottom:10px;"><em>— Sincerely, Still Logged In Somewhere</em></p>
+      <p><strong>Dear Still Logged In,</strong></p>
+      <p style="margin-top:8px;">The place existed. The fact that it no longer loads does not retroactively make it unreal. Memory is a kind of server. It runs on you, not on them. They can delete the address. They cannot delete that you were there. You were there. I was there. We were all there together, which is the only kind of together that counts.</p>
+      <p style="margin-top:8px;">Love, Aunt Arctic</p>
+    </div>
+  </div>
+  <div class="tag-drawer">
+    <button class="tag-drawer-toggle" onclick="toggleTagDrawer('tags-clubpenguin')">&#35; view tags ▾</button>
+    <div class="tag-drawer-content" id="tags-clubpenguin">#the club penguin times #aunt arctic #igloos #puffles #pizza for some reason #tube sled for some reason #begging my parents for a membership at least once a week #i never got a membership</div>
+  </div>
+</div>
+
+<!-- 3. CHAIN MAIL -->
+<div class="popup" id="popup-chainmail" style="top:100px;left:180px;width:460px;">
+  <div class="popup-titlebar" style="font-family:'Courier New',monospace;" onmousedown="startDrag(event,'popup-chainmail')">
+    <span>📧 Inbox — Fwd: Fwd: Fwd: READ THIS OR ELSE</span>
+    <div class="popup-close" onclick="closePopup('popup-chainmail')">✕</div>
+  </div>
+  <div class="popup-body">
+    <div class="mail-header">
+      <div class="mail-field"><span>From:</span> unknown@hotmail.com</div>
+      <div class="mail-field"><span>To:</span> you</div>
+      <div class="mail-field"><span>Subject:</span> Fwd: Fwd: Fwd: READ THIS OR ELSE (seriously)</div>
+      <div class="mail-field"><span>Date:</span> sometime in 2006</div>
+    </div>
+    <div class="mail-body">
+      <p class="mail-warning">!! DO NOT DELETE !! READ ALL THE WAY THROUGH !!</p>
+      <p style="margin-top:10px;">ok so i got this from my friend who got it from her cousin who lives in America and it is completely real and you need to read this.</p>
+      <p style="margin-top:10px;">There was once a place on the internet that belonged to everyone. It had no address. It had no owner. Girls went there and they left things and they found things and nothing was categorised and nothing had a brand. It was real. People were there. It existed.</p>
+      <p style="margin-top:10px;">Then something happened.</p>
+      <p style="margin-top:10px;">Someone looked at it and saw money. Someone looked at it and saw a market. Someone measured the girls and divided them into types and made the types into content and made the content into product and now the place is gone and in its place there is a feed.</p>
+      <p style="margin-top:10px;"><strong>NOW. Here is what happens depending on what you do with this email:</strong></p>
+      <div class="mail-tier">💌 <strong>Send to 10 people:</strong> your crush will text you tonight at exactly 11:11</div>
+      <div class="mail-tier">💌 <strong>Send to 5 people:</strong> you will find something beautiful on the internet this week that has no name</div>
+      <div class="mail-tier">💌 <strong>Send to 3 people:</strong> you will remember something from the early internet that you had completely forgotten and it will make you feel like yourself</div>
+      <div class="mail-tier" style="background:#ffe0e0;">💌 <strong>Send to 0 people:</strong> you already know what that means. you have already become the feed.</div>
+      <p style="margin-top:10px;font-size:10px;color:#888;">This email has been circling the internet since before you were on it. Somewhere a girl in 2004 is reading this for the first time. Don't be the one who breaks the chain.</p>
+      <p style="margin-top:10px;color:#999;font-size:10px;">— forwarded 847 times</p>
+    </div>
+  </div>
+  <div class="tag-drawer">
+    <button class="tag-drawer-toggle" onclick="toggleTagDrawer('tags-chainmail')">&#35; view tags ▾</button>
+    <div class="tag-drawer-content" id="tags-chainmail">#early internet threat engine #vague but personal consequences #i always fell for it and added a "just in case" in my forward #i vaguely remember having someone warn me about phishing</div>
+  </div>
+</div>
+
+<!-- 4. FACEBOOK TAG -->
+<div class="popup" id="popup-facebook" style="top:80px;left:200px;width:440px;">
+  <div class="popup-titlebar" onmousedown="startDrag(event,'popup-facebook')">
+    <span>f tag ur friends</span>
+    <div class="popup-close" onclick="closePopup('popup-facebook')">✕</div>
+  </div>
+  <div class="popup-body">
+    <div class="fb-post">
+      <div>
+        <span class="fb-avatar"></span>
+        <span class="fb-username">a girl on the internet</span>
+        <div class="fb-timestamp">sometime · 🌐</div>
+      </div>
+      <p style="margin:10px 0;font-size:12px;">tag yourself i'm the 404 one 💕 (repost if u remember when the internet was a place)</p>
+      <div class="fb-img-wrap">
+        <img src="tag-ur-friends.png" alt="tag yourself — Sakura from Naruto with categories: the drifter, the mirror one, the 404 one, the frazzled post-studio artist, the scammer, the noise defender, the political dissident, the unruly journalist, the in denial one, the one who crossed massive distances" style="max-width:100%;">
+        <div style="font-size:10px;color:#888;margin-top:4px;">↑ add your name in the comments</div>
+      </div>
+      <div class="fb-caption">
+        <strong>the drifter</strong> — was always between platforms. never committed. still found the good stuff.<br>
+        <strong>the mirror one</strong> — documented herself obsessively. was practising something she didn't have words for yet.<br>
+        <strong>the 404 one</strong> — made things that disappeared. the making was the point.<br>
+        <strong>the frazzled post-studio artist</strong> — was in too many chats. had too many tabs. felt everything too much.<br>
+        <strong>the scammer</strong> — understood that the internet was a game before anyone else did.<br>
+        <strong>the noise defender</strong> — stayed when things got ugly. witness and archive.<br>
+        <strong>the political dissident</strong> — used the early internet as infrastructure for something that mattered.<br>
+        <strong>the unruly journalist</strong> — wrote the real story in her Livejournal at 2am.<br>
+        <strong>the in denial one</strong> — said she didn't care. cared the most.<br>
+        <strong>the one who crossed massive distances</strong> — found someone across the world and called it home.
+      </div>
+    </div>
+  </div>
+  <div class="tag-drawer">
+    <button class="tag-drawer-toggle" onclick="toggleTagDrawer('tags-facebook')">&#35; view tags ▾</button>
+    <div class="tag-drawer-content" id="tags-facebook">#facebook #tagyourfriends #digitalpeerpressure #i used to be so bold for tagging people i was friends with on facebook but had never talked to in real life #bored after school #i'm not sure how universal of an experience this was but i would log on to facebook every night excited to see what my friends tagged me on. #one day i would be on the "tag someone who made you smile ♡" square and other days i would be on the "someone you don't talk to anymore ♡" tile and as a 10 year old that was the root of a lot of drama.</div>
+  </div>
+</div>
+
+<!-- 5. WEBCAM MIRROR -->
+<div class="popup" id="popup-webcam" style="top:100px;left:250px;width:380px;">
+  <div class="popup-titlebar" onmousedown="startDrag(event,'popup-webcam')">
+    <span style="font-family:'Courier New',monospace;">◉ webcam — are you looking for a window?</span>
+    <div class="popup-close" onclick="closePopup('popup-webcam')">✕</div>
+  </div>
+  <div class="popup-body">
+    <div class="webcam-wrap">
+      <video id="webcam-video" autoplay playsinline muted></video>
+      <div id="webcam-fallback">it was always a mirror anyway.</div>
+    </div>
+    <div class="webcam-caption">
+      we thought there were windows.<br>
+      it is made of mirrors.
+    </div>
+  </div>
+</div>
+
+<!-- 6. TAMATOWN -->
+<div class="popup" id="popup-tamatown" style="top:90px;left:220px;width:380px;">
+  <div class="popup-titlebar" onmousedown="startDrag(event,'popup-tamatown')">
+    <span>🥚 TAMATOWN — connecting…</span>
+    <div class="popup-close" onclick="closePopup('popup-tamatown')">✕</div>
+  </div>
+  <div class="popup-body">
+    <div class="tama-screen">
+      <div>TAMATOWN v2.0</div>
+      <div style="margin-top:4px;color:#00cc33;">© Bandai · Please wait…</div>
+      <div class="tama-loading">
+        <div>Connecting to town server…</div>
+        <div class="tama-bar"><div class="tama-fill"></div></div>
+        <div style="margin-top:6px;font-size:10px;color:#009922;">NOTE: To enter Tamatown, you must have a<br>physical Tamagotchi device and enter your<br>character code.</div>
+        <div style="margin-top:10px;color:#ff4444;font-size:10px;">ERROR: Connection timeout.<br>Server not found.<br>Please try again later.</div>
+      </div>
+    </div>
+    <div class="tama-map">
+      <div style="font-size:11px;margin-bottom:8px;">You can see the map. You cannot enter.</div>
+      <div class="tama-town">
+        <img src="inside-tamatown.png" style="width:100%;display:block;border-radius:3px;opacity:0.7;">
+        <div class="tama-overlay">
+          the town required a physical object to enter.<br><br>
+          the object still exists.<br>
+          the town no longer loads.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="tag-drawer">
+    <button class="tag-drawer-toggle" onclick="toggleTagDrawer('tags-tamatown')">&#35; view tags ▾</button>
+    <div class="tag-drawer-content" id="tags-tamatown">#tamagotchi lore expansion!!!!! #vividly remember the tamatama market and restaurant #it felt massive at the time because i had to log in using my tamagotchi code and i felt like i was living at the peak of technology as in i did not think technology could not advance any further than this #famous last words #it was probably like 12 pages</div>
+  </div>
+</div>
+
+<!-- 7. WEHEARTIT -->
+<div class="popup" id="popup-weheartit" style="top:70px;left:180px;width:460px;">
+  <div class="popup-titlebar" onmousedown="startDrag(event,'popup-weheartit')">
+    <span>♥ WeHeartIt — my collection</span>
+    <div class="popup-close" onclick="closePopup('popup-weheartit')">✕</div>
+  </div>
+  <div class="popup-body">
+    <div class="whi-grid">
+      <div class="whi-item"><img src="inside-weheartit-1.jpg" alt="heart socks"></div>
+      <div class="whi-item"><img src="inside-weheartit-2.jpg" alt="rainbow path"></div>
+      <div class="whi-item"><img src="inside-weheartit-3.png" alt="blythe doll"></div>
+      <div class="whi-item"><img src="inside-weheartit-4.png" alt="paul frank"></div>
+      <div class="whi-item"><img src="inside-weheartit-5.jpeg" alt="gem hearts"></div>
+      <div class="whi-item"><img src="inside-weheartit-6.jpeg" alt="ice cream"></div>
+      <div class="whi-item"><img src="inside-weheartit-7.jpeg" alt="galaxy cross"></div>
+      <div class="whi-item"><img src="inside-weheartit-8.jpg" alt="domo"></div>
+      <div class="whi-item"><img src="inside-weheartit-9.jpeg" alt="unicorns"></div>
+    </div>
+  </div>
+  <div class="tag-drawer">
+    <button class="tag-drawer-toggle" onclick="toggleTagDrawer('tags-weheartit')">&#35; view tags ▾</button>
+    <div class="tag-drawer-content" id="tags-weheartit">#the og pinterest #every picture was very pale #there were a lot of pictures of pale sunsets #latte art #glittery text and a lot of times new roman #i will never forget the logo #i think this was my first digital moodboard</div>
+  </div>
+</div>
+
+<!-- 8. PET SOCIETY -->
+<div class="popup" id="popup-petsociety" style="top:80px;left:140px;width:500px;">
+  <div class="popup-titlebar" onmousedown="startDrag(event,'popup-petsociety')">
+    <span>🐾 Pet Society — your room</span>
+    <div class="popup-close" onclick="closePopup('popup-petsociety')">✕</div>
+  </div>
+  <div class="popup-body">
+    <div class="ps-room">
+      <div class="ps-room-bg"></div>
+      <div class="ps-object">
+        <div class="ps-icon">🪟</div>
+        <div class="ps-text">
+          <strong>a window (actually a mirror)</strong>
+          <span>you decorated this room to express who you were. the room was built on Facebook's infrastructure. when Facebook shut Pet Society down in 2013, the rooms disappeared. everything you made inside a platform belongs to the platform.</span>
+        </div>
+      </div>
+      <div class="ps-object">
+        <div class="ps-icon">🚪</div>
+        <div class="ps-text">
+          <strong>a door that leads somewhere</strong>
+          <span>we thought the early internet was a place you could move through. it had topology. it had rooms and corridors. you could go places. the current internet is a feed. it doesn't have rooms. it has one very long wall.</span>
+        </div>
+      </div>
+      <div class="ps-object">
+        <div class="ps-icon">🏷️</div>
+        <div class="ps-text">
+          <strong>a landlord notice (pinned to the wall)</strong>
+          <span>"learning that the thing you loved had a landlord." the internet felt free because it was so new the landlord hadn't noticed yet. then they noticed.</span>
+        </div>
+      </div>
+      <div class="ps-object">
+        <div class="ps-icon">📦</div>
+        <div class="ps-text">
+          <strong>a box of things that don't load anymore</strong>
+          <span>the object persists. the place it connected you to does not. you carry the Tamagotchi. the town it belonged to is a 404. you carry the memories. the server is gone.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 9. GIRLSGOGAMES -->
+<div class="popup" id="popup-girlsgogames" style="top:90px;left:170px;width:440px;">
+  <div class="popup-titlebar" onmousedown="startDrag(event,'popup-girlsgogames')">
+    <span>💅 GirlsGoGames — The Internet: A Game</span>
+    <div class="popup-close" onclick="closePopup('popup-girlsgogames')">✕</div>
+  </div>
+  <div class="popup-body">
+    <div class="ggg-scene" id="ggg-scene">
+      <div class="ggg-title">THE INTERNET: A GAME</div>
+      <div class="ggg-text" id="ggg-text">It is 2006. You have just discovered the internet. A place that does not know what it is yet. What do you do?</div>
+      <div class="ggg-choices" id="ggg-choices">
+        <button class="ggg-choice" onclick="gggChoose(this)" data-img="avril-fanpage.png">🌐 Make a website about my favourite band</button>
+        <button class="ggg-choice" onclick="gggChoose(this)" data-img="forum-post.png">💬 Join a forum and start posting</button>
+        <button class="ggg-choice" onclick="gggChoose(this)" data-img="game-msn.png">✨ Make an MSN display name and fill it with glitter</button>
+        <button class="ggg-choice" onclick="gggChoose(this)" data-img="game-livejournal.jpg">📝 Read your fav magazine on LiveJournal</button>
+      </div>
+      <div class="ggg-conclusion" id="ggg-conclusion">
+        it doesn't matter which one you chose.<br><br>
+        every path leads to the same place.<br><br>
+        <em>we thought there were windows. it's made of mirrors. you were in it anyway.</em><br><br>
+        <img id="ggg-img" src="" alt="" style="max-width:100%;margin:10px auto 14px;display:block;border:2px solid #ff69b4;"><br>
+        <button class="ggg-choice" onclick="gggRestart()" style="margin:0 auto;display:block;max-width:200px;">↩ play again</button>
+      </div>
+    </div>
+  </div>
+  <div class="tag-drawer">
+    <button class="tag-drawer-toggle" onclick="toggleTagDrawer('tags-girlsgogames')">&#35; view tags ▾</button>
+    <div class="tag-drawer-content" id="tags-girlsgogames">#flash games #what i did when i had an unsupervised afternoon #nail salon games #avatar creation games #dress up games #love calculator games #cake decorating games #i would calculate me and my year 4 crush's name % compatibility and keep refreshing until it hit 99%</div>
+  </div>
+</div>
+
+
+<!-- 11. WAYBACK MACHINE ABOUT -->
+<div class="popup" id="popup-about" style="top:70px;left:200px;width:520px;">
+  <div class="popup-titlebar" onmousedown="startDrag(event,'popup-about')">
+    <span>🌐 web.archive.org/agirlisaspider — Wayback Machine</span>
+    <div class="popup-close" onclick="closePopup('popup-about')">✕</div>
+  </div>
+  <div class="popup-body">
+    <div class="wb-toolbar">
+      <div class="wb-nav">
+        <div class="wb-nav-btn">◀</div>
+        <div class="wb-nav-btn">▶</div>
+        <div class="wb-nav-btn">↻</div>
+      </div>
+      <div class="wb-url-bar">web.archive.org/agirlisaspider</div>
+    </div>
+    <div class="wb-banner">
+      <span class="wb-banner-logo">Wayback Machine</span>
+      <span class="wb-banner-tag">this page has been saved. you were here.</span>
+    </div>
+    <div class="wb-content">
+      <p>this website is a web in the literal sense. every image here, including the background, was found through the Wayback Machine, retrieved using keywords and hashtags that describe the places i'm writing about. the images are indexed. the methodology is the archive.</p>
+      <p>i grew up on the early internet. not browsing it, but living in it. Club Penguin, Tamatown, Tumblr, WeHeartIt. places that, according to Aranda, Wood and Vidokle, never existed. i disagree; my girlhood was shaped by being present in them, and this web is a counter-testimony.</p>
+      <p>i'm writing about these places in the style of Georges Perec — from memory, without reference images, unedited. trying to remember a place the way you remember a room you loved: by its details, rather than its facts. the hashtags are how i index what i find. they are also the residue of a culture that learned to categorise itself into types.</p>
+      <p>in <em>I'm Like a PDF But a Girl</em>, Freider quotes Lacan: <em>writing [...] is a mode of becoming-spider.</em> by writing these places into existence through Perec's methodology, i am becoming spider. by collecting and weaving images from the Wayback Machine, i am web-weaving. the web you are looking at is the artefact.</p>
+    </div>
+  </div>
+</div>
+
+<!-- 10. WINDOWS MEDIA PLAYER -->
+<div class="popup" id="popup-wmp" style="top:100px;left:300px;width:420px;">
+  <div class="popup-titlebar" onmousedown="startDrag(event,'popup-wmp')">
+    <span>🎵 Windows Media Player</span>
+    <div class="popup-close" onclick="closePopup('popup-wmp')">✕</div>
+  </div>
+  <div class="popup-body wmp-body">
+    <canvas id="wmp-visualiser"></canvas>
+    <div class="wmp-track-info">
+      <div class="wmp-track-title" id="wmp-title">background music</div>
+      <div class="wmp-track-sub">Unknown Artist · Unknown Album · <span id="wmp-status">stopped</span></div>
+    </div>
+    <div class="wmp-progress-wrap">
+      <div class="wmp-progress-bg">
+        <div class="wmp-progress-fill" id="wmp-progress"></div>
+      </div>
+      <div class="wmp-time-row">
+        <span id="wmp-current">0:00</span>
+        <span id="wmp-total">–:––</span>
+      </div>
+    </div>
+    <div class="wmp-controls">
+      <div class="wmp-btn" onclick="wmpPrev()" title="previous">⏮</div>
+      <div class="wmp-btn" id="wmp-playbtn" onclick="wmpToggle()" title="play/pause">▶</div>
+      <div class="wmp-btn" onclick="wmpStop()" title="stop">⏹</div>
+      <div class="wmp-btn" onclick="wmpNext()" title="next">⏭</div>
+      <div class="wmp-volume-wrap">
+        <span class="wmp-vol-label">vol</span>
+        <input class="wmp-vol-slider" type="range" min="0" max="100" value="80" oninput="wmpSetVol(this.value)" title="volume">
+      </div>
+    </div>
+    <!-- hidden YouTube iframe API target -->
+    <div id="wmp-yt"></div>
+  </div>
+</div>
+
+
+<script>
+/* ── TAG DRAWER ── */
+function toggleTagDrawer(id) {
+  const content = document.getElementById(id);
+  const btn = content.previousElementSibling;
+  content.classList.toggle('open');
+  btn.textContent = content.classList.contains('open') ? '# hide tags ▴' : '# view tags ▾';
+}
+
+/* ── SPARKLE CURSOR TRAIL ── */
+const dot = document.getElementById('cursor-dot');
+const sparkleChars = ['✦','✧','·','*','✺','⋆','˙'];
+let lastSparkle = 0;
+
+document.addEventListener('mousemove', e => {
+  dot.style.left = e.clientX + 'px';
+  dot.style.top  = e.clientY + 'px';
+
+  const now = Date.now();
+  if (now - lastSparkle < 40) return;
+  lastSparkle = now;
+
+  const s = document.createElement('span');
+  s.className = 'sparkle';
+  s.textContent = sparkleChars[Math.floor(Math.random() * sparkleChars.length)];
+  const dx = (Math.random() - 0.5) * 30;
+  const dy = (Math.random() - 0.5) * 30 - 10;
+  s.style.setProperty('--dx', dx + 'px');
+  s.style.setProperty('--dy', dy + 'px');
+  s.style.left = e.clientX + 'px';
+  s.style.top  = e.clientY + 'px';
+  s.style.fontSize = (10 + Math.random() * 8) + 'px';
+  document.body.appendChild(s);
+  setTimeout(() => s.remove(), 800);
+});
+
+/* ── POPUP OPEN / CLOSE ── */
+let topZ = 500;
+
+function openPopup(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.add('open');
+  el.style.zIndex = ++topZ;
+  if (id === 'popup-webcam') initWebcam();
+  updateCloseAll();
+}
+
+function closePopup(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.remove('open');
+  if (id === 'popup-webcam') stopWebcam();
+  if (id === 'popup-wmp') {
+    if (wmpAnimFrame) { cancelAnimationFrame(wmpAnimFrame); wmpAnimFrame = null; }
+  }
+  updateCloseAll();
+}
+
+function closeAllPopups() {
+  document.querySelectorAll('.popup.open').forEach(p => {
+    p.classList.remove('open');
+    if (p.id === 'popup-webcam') stopWebcam();
+  });
+  updateCloseAll();
+}
+
+function updateCloseAll() {
+  const count = document.querySelectorAll('.popup.open').length;
+  document.getElementById('close-all-btn').style.display = count > 1 ? 'block' : 'none';
+}
+
+/* click-to-front */
+document.querySelectorAll('.popup').forEach(p => {
+  p.addEventListener('mousedown', () => { p.style.zIndex = ++topZ; });
+});
+
+/* ── DRAGGABLE WINDOWS ── */
+function startDrag(e, id) {
+  const el = document.getElementById(id);
+  const rect = el.getBoundingClientRect();
+  const offX = e.clientX - rect.left;
+  const offY = e.clientY - rect.top;
+
+  function onMove(e) {
+    el.style.left = (e.clientX - offX) + 'px';
+    el.style.top  = (e.clientY - offY) + 'px';
+    el.style.right = 'auto';
+    el.style.bottom = 'auto';
+  }
+  function onUp() {
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+  }
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+}
+
+/* ── CLUB PENGUIN TABS ── */
+function cpTab(e, panelId) {
+  document.querySelectorAll('.cp-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.cp-panel').forEach(p => p.classList.remove('active'));
+  e.target.classList.add('active');
+  document.getElementById(panelId).classList.add('active');
+}
+
+/* ── WEBCAM ── */
+let stream = null;
+async function initWebcam() {
+  const video = document.getElementById('webcam-video');
+  const fallback = document.getElementById('webcam-fallback');
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+    video.srcObject = stream;
+    video.style.display = 'block';
+    fallback.style.display = 'none';
+  } catch {
+    video.style.display = 'none';
+    fallback.style.display = 'flex';
+  }
+}
+function stopWebcam() {
+  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+}
+
+/* ── GIRLSGOGAMES CHOICES ── */
+function gggChoose(btn) {
+  document.getElementById('ggg-choices').style.display = 'none';
+  document.getElementById('ggg-conclusion').style.display = 'block';
+  document.getElementById('ggg-text').style.display = 'none';
+  const img = document.getElementById('ggg-img');
+  img.src = btn.getAttribute('data-img');
+  img.style.display = 'block';
+}
+
+function gggRestart() {
+  document.getElementById('ggg-choices').style.display = 'flex';
+  document.getElementById('ggg-conclusion').style.display = 'none';
+  document.getElementById('ggg-text').style.display = 'block';
+  document.getElementById('ggg-img').src = '';
+}
+
+/* ── FEED TOGGLE ── */
+const feedBand = document.getElementById('feed-band');
+let feedScrollInterval = null;
+let isFeed = false;
+
+function toggleFeed() {
+  isFeed = !isFeed;
+  const btn = document.getElementById('feed-btn');
+
+  if (isFeed) {
+    document.body.classList.add('feed-mode');
+    btn.textContent = '✕ exit feed';
+    btn.classList.add('active');
+    // auto-scroll
+    feedBand.scrollTop = 0;
+    feedScrollInterval = setInterval(() => {
+      feedBand.scrollTop += 1;
+      // loop
+      if (feedBand.scrollTop >= feedBand.scrollHeight - feedBand.clientHeight) {
+        feedBand.scrollTop = 0;
+      }
+    }, 25);
+  } else {
+    document.body.classList.remove('feed-mode');
+    btn.textContent = '✂ cut the web';
+    btn.classList.remove('active');
+    clearInterval(feedScrollInterval);
+  }
+}
+
+
+
+/* ── WINDOWS MEDIA PLAYER ── */
+let wmpPlayer = null;
+let wmpReady = false;
+let wmpAnimFrame = null;
+let wmpProgressInterval = null;
+
+// Load YouTube IFrame API once
+(function() {
+  const tag = document.createElement('script');
+  tag.src = 'https://www.youtube.com/iframe_api';
+  document.head.appendChild(tag);
+})();
+
+window.onYouTubeIframeAPIReady = function() {
+  wmpPlayer = new YT.Player('wmp-yt', {
+    height: '1', width: '1',
+    videoId: 'KpU4B9Qedow',
+    playerVars: { autoplay: 0, controls: 0, loop: 1, playlist: 'KpU4B9Qedow' },
+    events: {
+      onReady: function(e) {
+        wmpReady = true;
+        e.target.setVolume(80);
+        document.getElementById('wmp-status').textContent = 'ready';
+      },
+      onStateChange: function(e) {
+        if (e.data === YT.PlayerState.PLAYING) {
+          document.getElementById('wmp-playbtn').textContent = '⏸';
+          document.getElementById('wmp-playbtn').classList.add('playing');
+          document.getElementById('wmp-status').textContent = 'playing';
+          wmpStartProgress();
+          wmpStartVisualiser();
+        } else if (e.data === YT.PlayerState.PAUSED) {
+          document.getElementById('wmp-playbtn').textContent = '▶';
+          document.getElementById('wmp-playbtn').classList.remove('playing');
+          document.getElementById('wmp-status').textContent = 'paused';
+          wmpStopProgress();
+        } else if (e.data === YT.PlayerState.ENDED) {
+          document.getElementById('wmp-playbtn').textContent = '▶';
+          document.getElementById('wmp-playbtn').classList.remove('playing');
+          document.getElementById('wmp-status').textContent = 'stopped';
+          document.getElementById('wmp-progress').style.width = '0%';
+          wmpStopProgress();
+        }
+      }
+    }
+  });
+};
+
+function wmpToggle() {
+  if (!wmpReady) return;
+  const state = wmpPlayer.getPlayerState();
+  if (state === YT.PlayerState.PLAYING) {
+    wmpPlayer.pauseVideo();
+  } else {
+    wmpPlayer.playVideo();
+  }
+}
+
+function wmpStop() {
+  if (!wmpReady) return;
+  wmpPlayer.stopVideo();
+  document.getElementById('wmp-playbtn').textContent = '▶';
+  document.getElementById('wmp-playbtn').classList.remove('playing');
+  document.getElementById('wmp-status').textContent = 'stopped';
+  document.getElementById('wmp-progress').style.width = '0%';
+  document.getElementById('wmp-current').textContent = '0:00';
+  wmpStopProgress();
+}
+
+function wmpPrev() { if (wmpReady) { wmpPlayer.seekTo(0); } }
+function wmpNext() { if (wmpReady) { wmpPlayer.seekTo(wmpPlayer.getDuration() - 2); } }
+
+function wmpSetVol(v) { if (wmpReady) wmpPlayer.setVolume(parseInt(v)); }
+
+function wmpFmtTime(s) {
+  s = Math.floor(s || 0);
+  return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
+}
+
+function wmpStartProgress() {
+  wmpStopProgress();
+  wmpProgressInterval = setInterval(() => {
+    if (!wmpReady) return;
+    const cur = wmpPlayer.getCurrentTime();
+    const dur = wmpPlayer.getDuration();
+    if (dur > 0) {
+      document.getElementById('wmp-progress').style.width = (cur / dur * 100) + '%';
+      document.getElementById('wmp-current').textContent = wmpFmtTime(cur);
+      document.getElementById('wmp-total').textContent = wmpFmtTime(dur);
+    }
+  }, 500);
+}
+
+function wmpStopProgress() {
+  clearInterval(wmpProgressInterval);
+}
+
+/* ── WMP VISUALISER (canvas bars) ── */
+function wmpStartVisualiser() {
+  const canvas = document.getElementById('wmp-visualiser');
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+  const W = canvas.width, H = canvas.height;
+  const bars = 48;
+  let phase = 0;
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, W, H);
+
+    phase += 0.04;
+    const barW = W / bars - 1;
+
+    for (let i = 0; i < bars; i++) {
+      // pseudo-random animated heights that look like audio
+      const height = (
+        Math.abs(Math.sin(phase + i * 0.4)) * 0.5 +
+        Math.abs(Math.sin(phase * 1.7 + i * 0.2)) * 0.3 +
+        Math.abs(Math.sin(phase * 0.5 + i * 0.7)) * 0.2
+      ) * H * 0.85;
+
+      const x = i * (barW + 1);
+      const y = H - height;
+
+      // gradient: blue at base → pink at peak
+      const grad = ctx.createLinearGradient(0, H, 0, y);
+      grad.addColorStop(0, '#1a5acc');
+      grad.addColorStop(0.6, '#8844cc');
+      grad.addColorStop(1, '#ff69b4');
+      ctx.fillStyle = grad;
+      ctx.fillRect(x, y, barW, height);
+
+      // peak dot
+      ctx.fillStyle = '#ffffff44';
+      ctx.fillRect(x, y, barW, 2);
+    }
+
+    wmpAnimFrame = requestAnimationFrame(draw);
+  }
+
+  if (wmpAnimFrame) cancelAnimationFrame(wmpAnimFrame);
+  draw();
+}
+
+// audio keeps playing even when popup is closed
+</script>
+
+</body>
+</html>
