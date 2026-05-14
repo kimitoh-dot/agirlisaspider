@@ -793,6 +793,7 @@
       justify-content: center;
       gap: 32px;
       transition: opacity 1.8s ease;
+      cursor: default;
     }
     #loading-screen.fade-out {
       opacity: 0;
@@ -1465,8 +1466,12 @@ function toggleTagDrawer(id) {
 function enterWeb() {
   const screen = document.getElementById('loading-screen');
   screen.classList.add('fade-out');
+  document.getElementById('cursor-dot').style.display = 'block';
   setTimeout(() => screen.remove(), 1900);
 }
+
+// hide cursor dot until web is entered
+document.getElementById('cursor-dot').style.display = 'none';
 
 /* ── SPARKLE CURSOR TRAIL ── */
 const dot = document.getElementById('cursor-dot');
